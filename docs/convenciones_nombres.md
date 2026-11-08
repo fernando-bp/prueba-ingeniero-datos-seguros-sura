@@ -37,7 +37,7 @@ Entidad siempre en plural y en español, igual que la fuente: `clientes`, `poliz
 
 | Elemento | Patrón | Ejemplo |
 |---|---|---|
-| Módulo Python | `<proposito>.py` | `src/ingestion/bronze.py` |
+| Módulo Python | `<proposito>.py` | `src/bronze/ingesta.py` |
 | Función | verbo en snake_case | `leer_csv()`, `estandarizar_fechas()` |
 | Clase | PascalCase | `PipelineConfig` |
 | Prueba | `tests/test_<modulo>.py` | `tests/test_config.py` |
