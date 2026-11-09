@@ -1,0 +1,31 @@
+# Databricks Asset Bundle: define el job como código y cómo se despliega en cada ambiente.
+# En la prueba solo existe dev (Free Edition). qa y prod documentan la estrategia corporativa.
+bundle:
+  name: seguros_pipeline
+
+include:
+  - resources/*.yml
+
+variables:
+  catalogo:
+    description: Catálogo de Unity Catalog del ambiente
+    default: workspace
+  correo_alertas:
+    description: Correo que recibe las alertas de falla
+    default: equipo-datos@ejemplo.com
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalogo: workspace
+
+  qa:
+    variables:
+      catalogo: seguros_qa
+
+  prod:
+    mode: production
+    variables:
+      catalogo: seguros_prod
