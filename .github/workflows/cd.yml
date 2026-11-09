@@ -1,0 +1,36 @@
+# Entrega continua (propuesta corporativa): despliega el job con Databricks Asset Bundles.
+# Se ejecuta manualmente para no fallar en Free Edition, donde no hay QA ni PROD.
+# En un entorno corporativo: QA se despliega al hacer merge a dll y PROD requiere aprobación.
+name: CD - despliegue
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: "Ambiente destino"
+        required: true
+        type: choice
+        options: [dev, qa, prod]
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    # Cada ambiente de GitHub tiene sus secretos y, en prod, revisores obligatorios.
+    environment: ${{ inputs.ambiente }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar CLI de Databricks
+        uses: databricks/setup-cli@main
+
+      - name: Validar bundle
+        run: databricks bundle validate -t ${{ inputs.ambiente }}
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+      - name: Desplegar
+        run: databricks bundle deploy -t ${{ inputs.ambiente }}
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}

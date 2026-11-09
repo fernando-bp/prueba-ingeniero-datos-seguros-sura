@@ -1,0 +1,64 @@
+# Definición del job como código (equivalente al creado en la interfaz).
+resources:
+  jobs:
+    job_seguros_mensual:
+      name: job_seguros_mensual
+      max_concurrent_runs: 1          # dos ejecuciones nunca escriben a la vez
+
+      schedule:
+        quartz_cron_expression: "0 0 6 5 * ?"   # día 5 de cada mes, 06:00
+        timezone_id: America/Bogota
+        pause_status: UNPAUSED
+
+      parameters:
+        - name: fecha_corte
+          default: "{{job.start_time.iso_date}}"
+        - name: modo
+          default: incremental
+        - name: env
+          default: ${bundle.target}
+        - name: run_id
+          default: "{{job.run_id}}"
+
+      email_notifications:
+        on_failure:
+          - ${var.correo_alertas}
+
+      tasks:
+        - task_key: tsk_tests
+          notebook_task:
+            notebook_path: ../notebooks/nb_90_tests
+          max_retries: 1
+          min_retry_interval_millis: 300000
+          retry_on_timeout: true
+          timeout_seconds: 1800
+
+        - task_key: tsk_bronze
+          depends_on:
+            - task_key: tsk_tests
+          notebook_task:
+            notebook_path: ../notebooks/nb_01_bronze_ingesta
+          max_retries: 1
+          min_retry_interval_millis: 300000
+          retry_on_timeout: true
+          timeout_seconds: 1800
+
+        - task_key: tsk_silver
+          depends_on:
+            - task_key: tsk_bronze
+          notebook_task:
+            notebook_path: ../notebooks/nb_02_silver_transformacion
+          max_retries: 1
+          min_retry_interval_millis: 300000
+          retry_on_timeout: true
+          timeout_seconds: 1800
+
+        - task_key: tsk_gold
+          depends_on:
+            - task_key: tsk_silver
+          notebook_task:
+            notebook_path: ../notebooks/nb_03_gold_publicacion
+          max_retries: 1
+          min_retry_interval_millis: 300000
+          retry_on_timeout: true
+          timeout_seconds: 1800

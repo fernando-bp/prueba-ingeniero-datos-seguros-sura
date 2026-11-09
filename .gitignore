@@ -218,3 +218,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Proyecto de datos ---
+*.csv
+*.parquet
+data/
+checkpoints/
+_checkpoint*/
+.env
+*.secret
+.databricks/
+spark-warehouse/
+metastore_db/
