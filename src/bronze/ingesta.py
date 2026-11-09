@@ -11,6 +11,7 @@ Decisiones:
 """
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
+from src.common.contratos import registrar_y_exigir, validar_esquema
 
 from src.common.config import PipelineConfig, get_logger
 from src.common.control import registrar_carga, totales_monetarios
@@ -78,7 +79,9 @@ def ingerir_entidad(spark: SparkSession, cfg: PipelineConfig, entidad: str) -> d
     tabla = f"bronze_{entidad}"
     log.info(f"[{cfg.run_id}] Ingestando {entidad} desde {ruta}")
     try:
-        df = agregar_metadata(limpiar_nombres_columnas(leer_csv(spark, ruta)), cfg)
+        crudo = limpiar_nombres_columnas(leer_csv(spark, ruta))
+        registrar_y_exigir(spark, cfg, validar_esquema(crudo.columns, entidad))   # contrato antes de escribir
+        df = agregar_metadata(crudo, cfg)
         filas_leidas = df.count()
         escribir_bronze(df, cfg, entidad)
     except Exception as e:
