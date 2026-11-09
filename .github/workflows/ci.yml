@@ -1,0 +1,38 @@
+# Integración continua: corre en cada Pull Request y en cada push a las ramas de trabajo.
+# Si alguna prueba falla, el PR queda en rojo y no debe aprobarse.
+name: CI - pruebas
+
+on:
+  pull_request:
+    branches: [dll]
+  push:
+    branches: [dll, "feature/**"]
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 17 (lo requiere Spark)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Instalar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias versionadas
+        run: pip install -r requirements.txt
+
+      - name: Validar sintaxis de todo el código
+        run: python -m compileall -q src tests
+
+      - name: Ejecutar pruebas unitarias
+        run: pytest -v tests -p no:cacheprovider
