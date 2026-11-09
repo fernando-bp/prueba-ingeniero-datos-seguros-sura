@@ -113,7 +113,8 @@ def totales_monetarios(df, entidad: str) -> dict:
     cols = [c for c in COLUMNAS_MONETARIAS.get(entidad, []) if c in df.columns]
     if not cols:
         return {}
-    fila = df.agg(*[F.sum(F.col(c).cast(DecimalType(22, 2))).alias(c) for c in cols]).first()
+        # try_cast: un valor no numérico suma como null en vez de romper la ejecución (ANSI)
+    fila = df.agg(*[F.sum(F.expr(f"try_cast(`{c}` AS DECIMAL(22,2))")).alias(c) for c in cols]).first()
     return {c: fila[c] for c in cols}
 
 
